@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task List with Timer and Alarm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-200">
+    <div class="flex justify-center m-11">
+    <input class="m-1 p-2" type="text" id="task" placeholder="Enter task">
+    <input class="m-1 p-2"type="text" id="time" placeholder="Enter time (in seconds)">
+    <button class="m-1 bg-blue-700 text-white p-2" onclick="submit()">Add task</button>
+     </div>
+    <!-- Display List -->
+    <div class="flex justify-center items-center">
+    <!-- <div class="flex justify-center flex-col "> -->
+    <div class="m-11" id="displayList"></div>
+
+    <!-- History List -->
+    <div class="m-11" id="historyList"></div>
+    
+    </div>
+    <!-- Alarm Audio -->
+    <audio id="alarmAudio" src="alarm.mp3" preload="auto"></audio>
+
+
+    <script>
+        const list = [];
+        const historyList = [];
+        const alarmAudio = document.getElementById('alarmAudio');
+
+        const submit = () => {
+            const task = document.getElementById('task').value;
+            const timeInSeconds = parseInt(document.getElementById('time').value, 10);
+
+            if (isNaN(timeInSeconds) || timeInSeconds <= 0) {
+                // alert('Please enter a valid positive number for time.');
+                return;
+            }
+
+            const endTime = new Date().getTime() + timeInSeconds * 1000;
+
+            list.push({ task, endTime });
+            displayList();
+            startTimer(endTime, task);
+        };
+
+        const displayList = () => {
+            const displayListDiv = document.getElementById('displayList');
+            displayListDiv.innerHTML = '<h1><strong>To-Do List:</strong></h1>';
+
+            if (list.length === 0) {
+                displayListDiv.innerHTML += '<p>No items in the list.</p>';
+            } else {
+                list.forEach(item => {
+                    displayListDiv.innerHTML += `<p>Task: ${item.task}, 
+                        Time: ${new Date(item.endTime).toLocaleTimeString()} <img class="inline" src="1.png" width="15" height="15"></p>`;
+                });
+            }
+        };
+
+
+
+        const startTimer = (endTime, task) => {
+            const intervalId = setInterval(() => {
+                const currentTime = new Date().getTime();
+                const timeRemaining = endTime - currentTime;
+
+                if (timeRemaining <= 0) {
+                    clearInterval(intervalId);
+                    moveTaskToHistory(task);
+                   playAlarm(2);
+
+                } else if (timeRemaining <= 3000) {
+                    playAlarm(1);
+                }
+            }, 1000);
+        };
+
+        const moveTaskToHistory = (task) => {
+            const completedTask = list.find(item => item.task === task);
+            historyList.push(completedTask);
+            list.splice(list.indexOf(completedTask), 1);
+            displayList();
+            displayHistory();
+        };
+
+        const displayHistory = () => {
+            const historyListDiv = document.getElementById('historyList');
+            historyListDiv.innerHTML = '<h1><strong>History List:</strong></h1>';
+
+            if (historyList.length === 0) {
+                historyListDiv.innerHTML += '<p>No completed tasks.</p>';
+            } else {
+                historyList.forEach(item => {
+                    historyListDiv.innerHTML += `<p>Task: ${item.task}, Completed at: ${new Date(item.endTime).toLocaleTimeString()}</p>`;
+                });
+            }
+        };
+
+        const playAlarm = (a) => {
+            if(a===1)
+            {
+                alarmAudio.play();
+            }
+
+            else
+            {
+                alarmAudio.pause();
+            }
+           
+        };
+    </script>
+</body>
+</html>
